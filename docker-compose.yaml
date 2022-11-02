@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  rabbit:
+    image: rabbitmq:3.8.5-management
+    container_name: rabbit
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "5672" ]
+      interval: 5s
+      timeout: 15s
+      retries: 1
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    expose:                            
+      - "5672"  
+      - "15672"  
+    restart: "always"
+
+  sub_directory_scan:
+    image: sub_directory_scan
+    build: 
+      context: ./sub_directory_scan
+      dockerfile: Dockerfile
+    volumes:
+      - type: bind
+        source: /Users/cliscoet/Downloads/test
+        target: /src
+    depends_on: 
+      - rabbit
+    restart: "on-failure:10"
+    tty: true
+  
+
+
+  main_directory_scan:
+    image: dir_scan
+    build: 
+      context: ./main_directory_scan
+      dockerfile: Dockerfile
+    volumes:
+      - type: bind
+        source: /Users/cliscoet/Downloads/test
+        target: /src
+    depends_on: 
+      - rabbit
+    restart: "on-failure:10"
+    tty: true
+
+
+
